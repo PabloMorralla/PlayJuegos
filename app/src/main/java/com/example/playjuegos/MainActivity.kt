@@ -1,11 +1,13 @@
 package com.example.playjuegos
 
+import android.content.res.Configuration
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
@@ -17,12 +19,15 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.NavHost
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -54,17 +59,42 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) {
-    Column (
-        modifier = modifier.fillMaxSize(),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Title()
-        Spacer(modifier = Modifier.height(50.dp))
+    val portrait = LocalConfiguration.current.orientation == Configuration.ORIENTATION_PORTRAIT
 
-        val texts = arrayOf("Play", "New Player", "Preferences", "About")
-        for (i in texts) {
-            HomeButton(text = i)
+    if (portrait) {
+        Column (
+            modifier = modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Title()
+            Spacer(modifier = Modifier.height(50.dp))
+
+            val texts = arrayOf("Play", "New Player", "Preferences", "About")
+            for (i in texts) {
+                HomeButton(text = i)
+            }
+        }
+    }
+    else {
+        Column (
+            modifier = modifier.fillMaxSize(),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Title()
+            Spacer(modifier = Modifier.height(50.dp))
+
+            val texts = arrayOf("Play", "New Player", "Preferences", "About")
+            Row {
+                HomeButton(texts[0])
+                HomeButton(texts[1])
+            }
+            Spacer(modifier.height(-10.dp))
+            Row {
+                HomeButton(texts[2])
+                HomeButton(texts[3])
+            }
         }
     }
 }
@@ -93,7 +123,7 @@ fun HomeButton(text: String, modifier: Modifier = Modifier) {
             text = text
         )
     }
-    Spacer(Modifier.height(20.dp))
+    Spacer(Modifier.height(20.dp).width(20.dp))
 }
 
 @Composable
@@ -102,6 +132,20 @@ fun NewPlayerScreen(modifier: Modifier = Modifier) {
 }
 
 // ----- PREVIEWS -----
+
+@Preview(showBackground = true)
+@Composable
+fun ScaffoldPreview() {
+    PlayJuegosTheme {
+        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+            val navController = rememberNavController()
+            NavHost(navController = navController, startDestination = "Home") {
+                composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
+                composable ("NewPlayer") { NewPlayerScreen() }
+            }
+        }
+    }
+}
 
 @Preview(showBackground = true)
 @Composable
