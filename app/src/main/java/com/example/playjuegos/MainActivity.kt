@@ -7,6 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -24,6 +25,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -57,7 +59,8 @@ class MainActivity : ComponentActivity() {
                     val navController = rememberNavController()
                     NavHost(navController = navController, startDestination = "Home") {
                         composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
-                        composable ("NewPlayer") { NewPlayerScreen() }
+                        composable ("NewPlayer") { NewPlayerScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
+                        composable ("Preferences") { PreferencesScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
                     }
 
 
@@ -85,8 +88,8 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
 
             val texts = arrayOf("Play", "New Player", "Preferences", "About")
             HomeButton("Play")
-            HomeButton("New Player", navController = navController, link="NewPlayer")
-            HomeButton("Preferences")
+            HomeButton("New Player", navController = navController, link = "NewPlayer")
+            HomeButton("Preferences", navController = navController, link = "Preferences")
             HomeButton("About")
         }
     }
@@ -145,7 +148,7 @@ fun HomeButton(text: String, modifier: Modifier = Modifier, link: String? = null
 }
 
 @Composable
-fun NewPlayerScreen(modifier: Modifier = Modifier) {
+fun NewPlayerScreen(modifier: Modifier = Modifier, navController: NavHostController) {
     var nameFieldState by remember { mutableStateOf(" ") }
     var surnameFieldState by remember { mutableStateOf(" ") }
     var nickFieldState by remember { mutableStateOf(" ") }
@@ -224,7 +227,7 @@ fun NewPlayerScreen(modifier: Modifier = Modifier) {
         }
         Spacer(modifier = Modifier.size(50.dp))
         Button(
-            onClick = {},
+            onClick = { navController.navigate("Home") },
             modifier = modifier
                 .width(300.dp)
                 .height(50.dp),
@@ -239,21 +242,50 @@ fun NewPlayerScreen(modifier: Modifier = Modifier) {
     }
 }
 
-// ----- PREVIEWS -----
-
-@Preview(showBackground = true)
 @Composable
-fun ScaffoldPreview() {
-    PlayJuegosTheme {
-        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-            val navController = rememberNavController()
-            NavHost(navController = navController, startDestination = "Home") {
-                composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
-                composable ("NewPlayer") { NewPlayerScreen() }
+fun PreferencesScreen(modifier: Modifier = Modifier, navController: NavHostController){
+    Box (
+        modifier = modifier.fillMaxSize(),
+        contentAlignment = Alignment.Center
+    ) {
+        Column (
+            modifier = modifier.fillMaxSize(),
+        ) {
+            Text(
+                text = "Elige una opción:"
+            )
+
+            val texts: Array<String> = arrayOf("Angry Birds", "Dragon Fly", "Hill Climbing Racing", "Pocket Soccer", "Radiant Defense", "Ninja Jump", "Air Control")
+            for (text in texts) {
+                Row {
+                    RadioButton(
+                        selected = false,
+                        onClick = {}
+                    )
+                    Text (text = text)
+                }
             }
+
+            HomeButton("Volver", navController = navController, link = "Home")
         }
     }
 }
+
+// ----- PREVIEWS -----
+
+//@Preview(showBackground = true)
+//@Composable
+//fun ScaffoldPreview() {
+//    PlayJuegosTheme {
+//        Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
+//            val navController = rememberNavController()
+//            NavHost(navController = navController, startDestination = "Home") {
+//                composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
+//                composable ("NewPlayer") { NewPlayerScreen() }
+//            }
+//        }
+//    }
+//}
 
 @Preview(showBackground = true)
 @Composable
