@@ -21,11 +21,19 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.outlined.Favorite
+import androidx.compose.material.icons.outlined.FavoriteBorder
+import androidx.compose.material.icons.outlined.Star
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Email
 import androidx.compose.material.icons.rounded.Phone
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -43,12 +51,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
-import androidx.compose.ui.text.style.LineHeightStyle
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -71,6 +78,7 @@ class MainActivity : ComponentActivity() {
                         composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
                         composable ("NewPlayer") { NewPlayerScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
                         composable ("Preferences") { PreferencesScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
+                        composable ("Games") {GamesScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
                     }
 
 
@@ -97,7 +105,7 @@ fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) 
             Spacer(modifier = Modifier.height(50.dp))
 
             val texts = arrayOf("Play", "New Player", "Preferences", "About")
-            HomeButton("Play")
+            HomeButton("Play", navController = navController, link="Games")
             HomeButton("New Player", navController = navController, link = "NewPlayer")
             HomeButton("Preferences", navController = navController, link = "Preferences")
             HomeButton("About")
@@ -258,6 +266,19 @@ fun PreferencesScreen(modifier: Modifier = Modifier, navController: NavHostContr
         modifier = modifier.fillMaxSize(),
         contentAlignment = Alignment.Center
     ) {
+        var selectedGame by rememberSaveable { mutableStateOf("No se ha seleccionado ninguna opción.") }
+        var selectedNumber by remember {mutableStateOf(0f)}
+
+        val context = LocalContext.current
+        FloatingActionButton(
+            onClick = {
+                Toast.makeText(context, "$selectedGame: $selectedNumber", Toast.LENGTH_LONG).show()
+            },
+            modifier = modifier.align(Alignment.BottomEnd).padding(16.dp)
+        ) {
+            Icon(Icons.Filled.CheckCircle, "Floating action button")
+        }
+
         Column (
             modifier = modifier.fillMaxSize(),
         ) {
@@ -267,40 +288,139 @@ fun PreferencesScreen(modifier: Modifier = Modifier, navController: NavHostContr
                 textAlign = TextAlign.Center
             )
 
-            val texts: Array<String> = arrayOf("Angry Birds", "Dragon Fly", "Hill Climbing Racing", "Pocket Soccer", "Radiant Defense", "Ninja Jump", "Air Control")
-            var opcion by rememberSaveable { mutableStateOf("-") }
+            var texts: Array<String> = arrayOf("Angry Birds", "Dragon Fly", "Hill Climbing Racing", "Pocket Soccer", "Radiant Defense", "Ninja Jump", "Air Control")
             for (text in texts) {
                 Row {
                     RadioButton(
-                        selected = (opcion == text),
-                        onClick = {opcion = text}
+                        selected = (selectedGame == text),
+                        onClick = {selectedGame = text}
                     )
                     Text (text = text)
                 }
             }
 
             val range = 0f..10f
-            val steps = 8
-            var selection by remember {mutableStateOf(0f)}
-
+            val steps = 9
             Slider (
-                value = selection,
+                value = selectedNumber,
                 valueRange = range,
                 steps = steps,
-                onValueChange = {selection = it}
+                onValueChange = {selectedNumber = it}
             )
+
+            RatingBar(modifier, selectedNumber.toInt())
+
+            Text(
+                text="Plataformas",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+
+            Row {
+                texts = arrayOf("PS4", "XBox", "3DS", "Wii", "WiiU")
+                for (text in texts) {
+                    var selected by remember { mutableStateOf(false) }
+                    FilterChip(
+                        onClick = { selected = !selected },
+                        label = { Text(text) },
+                        selected = selected,
+                        leadingIcon = if (selected) {
+                            {
+                                Icon(
+                                    imageVector = Icons.Filled.Done,
+                                    contentDescription = "Done icon",
+                                    modifier = Modifier.size(FilterChipDefaults.IconSize)
+                                )
+                            }
+                        } else {
+                            null
+                        },
+                    )
+                }
+            }
 
             HomeButton("Volver", navController = navController, link = "Home")
         }
+    }
+}
+
+@Composable
+fun RatingBar(modifier: Modifier = Modifier, rating: Int = 0, max: Int = 10){
+    Row (modifier = modifier) {
+        repeat(rating) {
+            Icon(
+                imageVector = Icons.Outlined.Favorite,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+        //"${if (true) "x" else "y"}"
+        repeat(max - rating) {
+            Icon(
+                imageVector = Icons.Outlined.FavoriteBorder,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+    }
+}
+
+@Composable
+fun GamesScreen(modifier: Modifier = Modifier, navController: NavHostController) {
+    Box(
+        modifier = modifier.fillMaxSize()
+    ){
+        val context = LocalContext.current
 
         FloatingActionButton(
             onClick = {
-                Toast.makeText(LocalContext.current, Toast.LENGTH_LONG).show()
-            },
-            modifier = modifier
+                Toast.makeText(context, "Has seleccionado...", Toast.LENGTH_LONG).show()
+            }
         ) {
-            Icon(Icons.Filled.CheckCircle, "Floating action button")
+
         }
+
+        val checkInfos = getCheckInfo(listOf(
+            "Angry Birds",
+            "Dragon Fly",
+            "Hill Climbing Racing",
+            "Radiant Defense",
+            "Pocket Soccer",
+            "Ninja Jump",
+            "Air Control"
+        ))
+        Column {
+            checkInfos.forEach {
+                MyCheckBox(it)
+            }
+        }
+    }
+}
+
+@Composable
+fun getCheckInfo(titles: List<String>): List<CheckInfo> {
+    return titles.map { x ->
+        var estadoCheck by rememberSaveable { mutableStateOf(false) }
+
+        CheckInfo (
+            title = x,
+            selected = estadoCheck,
+            onCheckedChange = {y -> estadoCheck = y}
+        )
+    }
+}
+
+@Composable
+fun MyCheckBox(checkInfo: CheckInfo) {
+    Row (
+        Modifier.padding(8.dp)
+    ) {
+        Checkbox (
+            checked = checkInfo.selected,
+            onCheckedChange = { checkInfo.onCheckedChange(!checkInfo.selected) }
+        )
+        Spacer(modifier = Modifier.width(8.dp))
+        Text(checkInfo.title)
     }
 }
 
