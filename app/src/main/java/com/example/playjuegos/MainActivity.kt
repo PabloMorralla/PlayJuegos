@@ -1,6 +1,7 @@
 package com.example.playjuegos
 
 import android.content.res.Configuration
+import android.graphics.Paint
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.ComponentActivity
@@ -10,6 +11,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,6 +45,7 @@ import androidx.compose.material3.Slider
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -56,6 +59,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.LineHeightStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -65,6 +69,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.playjuegos.ui.theme.PlayJuegosTheme
+import kotlinx.coroutines.delay
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -74,7 +79,8 @@ class MainActivity : ComponentActivity() {
             PlayJuegosTheme {
                 Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
                     val navController = rememberNavController()
-                    NavHost(navController = navController, startDestination = "Home") {
+                    NavHost(navController = navController, startDestination = "Splash") {
+                        composable ("Splash") { SplashScreen(navController, Modifier.padding(innerPadding)) }
                         composable ("Home") { HomeScreen(navController, Modifier.padding(innerPadding)) }
                         composable ("NewPlayer") { NewPlayerScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
                         composable ("Preferences") { PreferencesScreen(modifier = Modifier.padding(innerPadding), navController = navController) }
@@ -90,6 +96,35 @@ class MainActivity : ComponentActivity() {
 }
 
 // ----- COMPONENTES -----
+
+@Composable
+fun SplashScreen(navController: NavHostController, modifier: Modifier = Modifier) {
+    val name = "Pablo Morralla"
+    val delaySeconds: Long = 2
+
+    Box(
+        modifier.fillMaxSize()
+    ){
+        Image(
+            painter = painterResource(id = R.drawable.logoplayjuegos),
+            contentDescription = "Logotipo de la Aplicación",
+            modifier = Modifier.requiredSize(300.dp).align(Alignment.Center)
+        )
+
+        Text(
+            text = "Made by\n$name",
+            modifier = modifier.align(Alignment.BottomCenter),
+            fontSize = 30.sp,
+            fontWeight = FontWeight.Bold,
+            textAlign = TextAlign.Center
+        )
+    }
+
+    LaunchedEffect(true) {
+        delay(delaySeconds * 1000)
+        navController.navigate("Home")
+    }
+}
 
 @Composable
 fun HomeScreen(navController: NavHostController, modifier: Modifier = Modifier) {
@@ -274,7 +309,9 @@ fun PreferencesScreen(modifier: Modifier = Modifier, navController: NavHostContr
             onClick = {
                 Toast.makeText(context, "$selectedGame: $selectedNumber", Toast.LENGTH_LONG).show()
             },
-            modifier = modifier.align(Alignment.BottomEnd).padding(16.dp)
+            modifier = modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
         ) {
             Icon(Icons.Filled.CheckCircle, "Floating action button")
         }
@@ -372,14 +409,6 @@ fun GamesScreen(modifier: Modifier = Modifier, navController: NavHostController)
     ){
         val context = LocalContext.current
 
-        FloatingActionButton(
-            onClick = {
-                Toast.makeText(context, "Has seleccionado...", Toast.LENGTH_LONG).show()
-            }
-        ) {
-
-        }
-
         val checkInfos = getCheckInfo(listOf(
             "Angry Birds",
             "Dragon Fly",
@@ -389,10 +418,71 @@ fun GamesScreen(modifier: Modifier = Modifier, navController: NavHostController)
             "Ninja Jump",
             "Air Control"
         ))
-        Column {
-            checkInfos.forEach {
-                MyCheckBox(it)
+
+        val images = listOf(
+            R.drawable.games_angrybirds,
+            R.drawable.games_dragonfly,
+            R.drawable.games_hillclimbingracing,
+            R.drawable.games_radiantdefense,
+            R.drawable.games_pocketsoccer,
+            R.drawable.games_ninjump,
+            R.drawable.games_aircontrol
+        )
+
+        FloatingActionButton(
+            onClick = {
+                var string = "";
+                for (i in checkInfos) {
+                    if (i.selected) string += i.title + ", "
+                }
+                if (string.isEmpty()) string = "No ha seleccionado ninguna opción."
+                else {
+                    string = "Has seleccionado $string"
+                    //string.removeSuffix(", ")
+                    string += "."
+                }
+
+                Toast.makeText(
+                    context,
+                    string,
+                    Toast.LENGTH_LONG
+                ).show()
+            },
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.CheckCircle,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+        }
+
+        Column (
+            modifier = Modifier.fillMaxSize().padding(16.dp),
+            verticalArrangement = Arrangement.SpaceEvenly,
+            horizontalAlignment = Alignment.Start
+        ) {
+            for (i in 0..6) {
+                val checkInfo = checkInfos[i]
+                val image = images[i]
+
+                Row {
+                    Image(
+                        painter = painterResource(id = image),
+                        contentDescription = checkInfos[i].title,
+                        modifier = Modifier.requiredSize(75.dp)
+                    )
+                    Checkbox (
+                        checked = checkInfo.selected,
+                        onCheckedChange = { checkInfo.onCheckedChange(!checkInfo.selected) }
+                    )
+                    Text(checkInfo.title)
+                }
             }
+
+            HomeButton("Volver", modifier, "Home", navController)
         }
     }
 }
@@ -402,25 +492,11 @@ fun getCheckInfo(titles: List<String>): List<CheckInfo> {
     return titles.map { x ->
         var estadoCheck by rememberSaveable { mutableStateOf(false) }
 
-        CheckInfo (
+        CheckInfo(
             title = x,
             selected = estadoCheck,
-            onCheckedChange = {y -> estadoCheck = y}
+            onCheckedChange = { y -> estadoCheck = y }
         )
-    }
-}
-
-@Composable
-fun MyCheckBox(checkInfo: CheckInfo) {
-    Row (
-        Modifier.padding(8.dp)
-    ) {
-        Checkbox (
-            checked = checkInfo.selected,
-            onCheckedChange = { checkInfo.onCheckedChange(!checkInfo.selected) }
-        )
-        Spacer(modifier = Modifier.width(8.dp))
-        Text(checkInfo.title)
     }
 }
 
